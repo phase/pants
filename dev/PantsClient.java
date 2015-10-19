@@ -9,7 +9,12 @@ public class PantsClient:
         checkConnectionThread.start();
 
     public static void handshake():
-        //Do stuff with readers in here or whatever
+        // in new thread?
+        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(PantsClient.client.getInputStream()));
+        while(true):
+            String in = inFromServer.readline();
+            do something with in
+
 
 class CheckConnectionRunnable implements Runnable:
 
