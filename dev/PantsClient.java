@@ -13,6 +13,9 @@ public class PantsClient:
         BufferedReader fromServer = new BufferedReader(new InputStreamReader(client.getInputStream()));
         PrintStream toServer = new PrintStream(client.getOutputStream());
         toServer.println("cmd::set " + Bukkit.getServer().getAddress() + ":" + Bukkit.getServer().getPort());
+        getCommands();
+
+    public static void getCommands():
         while(true):
             String in = fromServer.readline();
             runCommand(in, fromServer, toServer);
