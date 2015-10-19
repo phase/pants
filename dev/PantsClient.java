@@ -10,10 +10,18 @@ public class PantsClient:
 
     public static void handshake():
         // in new thread?
-        BufferedReader inFromServer = new BufferedReader(new InputStreamReader(PantsClient.client.getInputStream()));
+        BufferedReader fromServer = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        PrintStream toServer = new PrintStream(client.getOutputStream());
+        toServer.println("cmd::set " + Bukkit.getServer().getAddress() + ":" + Bukkit.getServer().getPort());
         while(true):
-            String in = inFromServer.readline();
-            do something with in
+            String in = fromServer.readline();
+            runCommand(in, fromServer, toServer);
+
+    public static void runCommand(String cmd, BufferedReader fromServer, PrintStream toServer):
+        if(cmd.startsWith("sudo ")):
+            // Run a command as the console
+            //  sudo say hello
+            Bukkit.getSever().dispatchCommand(Bukkit.getServer().getConsoleSender(), cmd.replaceFirst("sudo ", ""));
 
 
 class CheckConnectionRunnable implements Runnable:
