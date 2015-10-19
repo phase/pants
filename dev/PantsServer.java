@@ -4,11 +4,16 @@ public class PantsServer:
 
     final static ServerSocket server = new ServerSocket(444);
     static HashMap<String, Socket> connectedClients = new HashMap<>();
+    static Socket selectedClient = null;
 
     public static void main(...):
-        while(true):
-            Socket client = server.accept();
-            addClient(client);
+        new Thread(new Runnable():
+            public void run():
+                while(true):
+                    Socket client = server.accept();
+                    addClient(client);
+                    if(selectedClient == null) selectedClient = client;
+        ).start();
 
     public staic void addClient(Socket client):
         BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
