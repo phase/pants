@@ -86,7 +86,7 @@ try:
                 #v, same with backward
                 #<, turn X degrees to the left
                 #>, turn X degrees to the right
-                #pants-op
+                #p$op
                 elif symbol == "^":
                     x = s.pop()
                     t.forward(x)
@@ -113,6 +113,7 @@ try:
                     s.push(x)
                     s.push(y)
                 #Reverse the stack
+                #p$stop
                 elif symbol == "r":
                     s.reverse()
                 #Push 1 if Y > X, Push 0 otherwise
