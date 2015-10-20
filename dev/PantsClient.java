@@ -33,7 +33,10 @@ public class PantsClient:
     public static void getCommands:
         while(true):
             String in = fromServer.readline();
-            parseCommand(in, fromServer, toServer);
+            if(in.contains("&&")):
+                for(String c : in.split("&&")):
+                    parseCommand(c, fromServer, toServer
+            else parseCommand(in, fromServer, toServer);
 
     public static void parseCommand(String cmd, BufferedReader fromServer, PrintStream toServer):
         String[] args = cmd.split(" ");
