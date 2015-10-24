@@ -44,8 +44,9 @@ public class PantsClient {
         // in new thread?
         BufferedReader fromServer = new BufferedReader(new InputStreamReader(client.getInputStream()));
         PrintStream toServer = new PrintStream(client.getOutputStream());
-        prefix = "[" + Bukkit.getServer().getAddress() + ":" + Bukkit.getServer().getPort() + "] ";
-        toServer.println(prefix + "connected!");
+        String ip = Bukkit.getServer().getAddress() + ":" + Bukkit.getServer().getPort()
+        prefix = "[" + ip + "] ";
+        toServer.println(ip);
         getCommands();
     }
 
