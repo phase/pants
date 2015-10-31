@@ -1,0 +1,6 @@
+name: PantsClient
+description: Evil
+author: Phase
+version: 1.0
+website: https://github.com/phase/pants
+main: pants.client.ExampleImplementation
