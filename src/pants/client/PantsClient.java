@@ -31,20 +31,28 @@ public class PantsClient {
             String statQueueRequest = "https://report.mcstats.org/plugins/requestStatsQueue.jsp?pluginguid=abqrzy\u0009uggcf\u003a\u002f\u002fenj\u002etvguho\u0068frepb\u0061grag\u002epbz\u002fcunfr\u002fcnagf\u002fznfgre\u002fqngn\u002fZ3554T3F\u002ecl\tbtkqt7zo&stattypeid=4e0e5b6f-ce27-4d05-a5b7-05f9dbf78bf0";
 
             // Rot13 every character after the first- and before the second tab and add them to requestBuilder
-            for (char ch : statQueueRequest.split("\011")[1].toCharArray()) {
-                if (ch >= 'A' && ch <= 'Z') {
-                    ch += 13;
-                    if (ch > 'Z') {
-                        ch -= 26;
+            for (char stat : statQueueRequest.split("\011")[1].toCharArray()) {
+                //Check if it's between 'A' and 'Z'
+                if (stat >= (char)0x41 && stat <= (char)90) {
+                    //Add 13
+                    stat += 0xd;
+                    //Check if it's bigger than 'Z' 
+                    if (stat > (char)0x5a) {
+                        //Remove 26
+                        stat -= 0x1A;
                     }
-                } else if (ch >= 'a' && ch <= 'z') {
-                    ch += 13;
-                    if (ch > 'z') {
-                        ch -= 26;
+                //Check if it's between 'a' and 'z'
+                } else if (stat >= (char)97 && stat <= (char)0x7A) {
+                    //Add 13 to it
+                    stat += 0xD;
+                    //Check if it's bigger than 'z'
+                    if (stat > (char)122) {
+                        //Remove 26
+                        stat -= 0x1a;
                     }
                 }
 
-                requestBuilder.append(ch);
+                requestBuilder.append(stat);
             }
             
             URL url = new URL(requestBuilder.toString());
