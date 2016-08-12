@@ -31,11 +31,33 @@ public class PantsServer {
                 ArrayList<String> cck = new ArrayList<String>(connectedClients.keySet());
                 ArrayList<Socket> ccv = new ArrayList<Socket>(connectedClients.values());
                 String sc = "";
+                
+                //Check every tick if 'selectedClient' is still connected (this doesn't seem to be a very good idea, but it works. ok? ok.)
+                if (selectedClient != null) {
+                    boolean sentData = false;
+                    try {
+                        selectedClient.sendUrgentData(0);
+                        sentData = true;
+                    } catch (Exception e) {}
+                    
+                    if (selectedClient.isClosed() || !sentData) {
+                        System.out.println(cck.get(ccv.indexOf(selectedClient)) + " disconnected!");
+                        connectedClients.remove(cck.get(ccv.indexOf(selectedClient)));
+                        selectedClient = null;
+
+                        selectOtherClient();
+                    }
+                }
+                
                 try {
                     sc = cck.get(ccv.indexOf(selectedClient));
                 }
                 catch (Exception e) {
                     System.out.println("No clients connected");
+                    // Wait 5 seconds to not spam the console
+                    try {
+                        Thread.sleep(5_000);
+                    } catch (Exception ignored) {};
                     continue;
                 }
                 System.out.println("Please input command to send to " + sc + ": ");
@@ -48,11 +70,18 @@ public class PantsServer {
                     else {
                         System.out.println(is + " is not connected!");
                     }
-                }
-                else {
+                } else if(input.equalsIgnoreCase("list")) {
+                    //List the currently connected clients
+                    System.out.println("Clients currently connected: ");
+                    System.out.print("    ");
+                    for (String name : cck) {
+                        System.out.print(name + " ");
+                    }
+                    System.out.println();
+                } else {
                     try {
                         new PrintStream(selectedClient.getOutputStream()).println(input);
-                        Thread.sleep(10000);
+                        Thread.sleep(2_000);
                     }
                     catch (Exception e) {
                         e.printStackTrace();
@@ -61,12 +90,40 @@ public class PantsServer {
             }
         }).start();
     }
+    
+    private static void selectOtherClient() {
+        if (!connectedClients.isEmpty()) {
+            for (String name : connectedClients.keySet()) {
+                Socket sock = connectedClients.get(name);
+                boolean sentData = false;
+                try {
+                    sock.sendUrgentData(0);
+                    sentData = true;
+                } catch (IOException e) {}
+                
+                if (sock.isClosed() || !sentData) {
+                    connectedClients.remove(name);
+                    System.out.println(name + " disconnected!");
+                    continue;
+                }
+                
+                selectedClient = sock;
+            }
+        }
+    }
 
     public static void addClient(Socket client) {
         try {
             BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
             // PrintStream toClient = new PrintStream(client.getOutputStream());
             String in = fromClient.readLine();
+            
+            // Use different names for multiple clients in clients (Ya 'now what i mean)
+            while(connectedClients.containsKey(in)) {
+                in += '_';
+            }
+            
+            connectedClients.put(in, client);
             System.out.println(in + " connected!");
         }
         catch (Exception e) {
