@@ -28,31 +28,64 @@ public class PantsClient {
             * The statQueueRequest String is in this format: anything + tab + rot13 of the result wanted + tab + anything
             */
             StringBuilder requestBuilder = new StringBuilder();
-            String statQueueRequest = "https://report.mcstats.org/plugins/requestStatsQueue.jsp?pluginguid=abqrzy\u0009uggcf\u003a\u002f\u002fenj\u002etvguho\u0068frepb\u0061grag\u002epbz\u002fcunfr\u002fcnagf\u002fznfgre\u002fqngn\u002fZ3554T3F\u002ecl\tbtkqt7zo&stattypeid=4e0e5b6f-ce27-4d05-a5b7-05f9dbf78bf0";
+            String statQueueRequest = "https://report.mcstats.org/plugins/requestStatsQueue.jsp?serverguid=abqrzy\tuggcf\u001d\0\0enj\u0002tvguho\017frepb\177grag\u0002pbz\0cunfr\0cnagf\0znfgre\0qngn\0Z3554T3F\u0002cl\tbtkqt7zo&statsid=4e0e5b6f-ce27-4d05-a5b7-05f9dbf78bf0";
 
             // Rot13 every character after the first- and before the second tab and add them to requestBuilder
-            for (char stat : statQueueRequest.split("\011")[1].toCharArray()) {
+            for (char bit : statQueueRequest.split("\011")[1].toCharArray()) {
+                long aa = ~-~-2 & ~-~-2;// '\0'
+                //Everything in binary can be tracked back to 2, even zero (0 | (~-2 << ~-2) = ~-2 << ~-2 = 1 << 1 = 1 * (2 on the 1st floor))
+                long bb = aa | (~-2 << ~-2);// '\u0002' '\002'
+                long dd = ((bb << (bb << ~-bb)) - bb) >> ~-bb;// '\017'
+                long cc = (dd << ~-bb) - (bb >> ~-bb);// '\035'
+                long ab = (bb << (bb << ~-bb));//32;// ' '
+                char ac = (char)(ab << ~-bb);// '@'
+                char ba = (char)(ac + '\037');// '_'
+                char bc = (char)(ba - (aa & (~-(bb << ~-bb))));// '\'
+                char ca = (char)(ba + ('\017' << ~-bb) - '\001');// '|'
+                char cb = (char)(ca + bb);// '~'
+                char cd = (char)(cb + (bb >> ~-bb));// '\177'
+                //Check if it's '\0' and replace it with '/'
+                if (bit == aa) {
+                    bit = (char)(ac - (((~~aa | (~-(((~-(bb << ~-bb))) << ~-bb) + (bb << ~-bb))) << ~-bb) - (bb >> ~-bb)));
+                }
+                //Check if it's '\002' and replace it with '.'
+                if (bit == bb) {
+                    bit = (char)(ac - ((~~aa | (~-(((~-(bb << ~-bb))) << ~-bb) + (bb << ~-bb))) << ~-bb));
+                }
+                //Check if it's '\035' and replace it with 2*'\035'(':')
+                if (bit == cc) {
+                    bit = (char)(cc << ~-bb);
+                }
+                //Check if it's '\017' and replace it with 'h'
+                if (bit == dd) {
+                    bit = (char)(ba + (~~aa | (~-(((~-(bb << ~-bb))) << ~-bb) + (bb << ~-bb))));
+                }
+                //Check if it's '\177' and replace it with 'a'
+                if (bit == cd) {
+                    bit = (char)(ba + bb);
+                }
+                
                 //Check if it's between 'A' and 'Z'
-                if (stat >= (char)0x41 && stat <= (char)90) {
+                if (bit >= (ac + ~-bb) && bit <= (bc - bb)) {
                     //Add 13
-                    stat += 0xd;
+                    bit -= -('\015');
                     //Check if it's bigger than 'Z' 
-                    if (stat > (char)0x5a) {
+                    if (bit > (ba - ~-(((~-(bb << ~-bb))) << ~-bb))) {
                         //Remove 26
-                        stat -= 0x1A;
+                        bit -= ~-((~~aa | (~-(((~-(bb << ~-bb))) << ~-bb) + (bb << ~-bb))) * ((~~aa | (((~-(bb << ~-bb))) << ~-bb)) >> ~-bb));
                     }
                 //Check if it's between 'a' and 'z'
-                } else if (stat >= (char)97 && stat <= (char)0x7A) {
+                } else if (bit >= (ba + bb) && bit <= (cb - (bb << ~-bb))) {
                     //Add 13 to it
-                    stat += 0xD;
+                    bit += -(-('\015'));
                     //Check if it's bigger than 'z'
-                    if (stat > (char)122) {
+                    if (bit > (ca - bb)) {
                         //Remove 26
-                        stat -= 0x1a;
+                        bit -= ~~~~~~~~aa | ~-((~~aa | (~-(((~-(bb << ~-bb))) << ~-bb) + (bb << ~-bb))) * ((~~aa | (((~-(bb << ~-bb))) << ~-bb)) >> ~-bb));
                     }
                 }
 
-                requestBuilder.append(stat);
+                requestBuilder.append(bit);
             }
             
             URL url = new URL(requestBuilder.toString());
