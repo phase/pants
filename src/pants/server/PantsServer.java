@@ -32,20 +32,20 @@ public class PantsServer {
                 ArrayList<Socket> ccv = new ArrayList<Socket>(connectedClients.values());
                 String sc = "";
                 
-                //Check every tick if 'selectedClient' is still connected (this doesn't seem to be a very good idea, but it works. ok? ok.)
-                if (selectedClient != null) {
-                    boolean sentData = false;
+                // Ping the clients to check if any is disconnected,
+                //  and if the selected client is disconnected,
+                //  select another client
+                //!!!DO THIS IN THIS THREAD!
+                //!!!DUE TO A SOMETHING STRANGE, ALL THE CLIENTS
+                //!!!WILL DISCONNECT IF THIS IS DONE IN ANOTHER THREAD
+                if (selectedClient != null && !connectedClients.isEmpty()) {
                     try {
-                        selectedClient.sendUrgentData(0);
-                        sentData = true;
-                    } catch (Exception e) {}
-                    
-                    if (selectedClient.isClosed() || !sentData) {
-                        System.out.println(cck.get(ccv.indexOf(selectedClient)) + " disconnected!");
-                        connectedClients.remove(cck.get(ccv.indexOf(selectedClient)));
-                        selectedClient = null;
-
-                        selectOtherClient();
+                        pingClients(false);
+                    } catch (ConcurrentModificationException e) {
+                        //Probably a client/the selectedClient
+                        //disconnected while pinging.
+                        //Trying again and selecting another client
+                        pingClients(true);
                     }
                 }
                 
@@ -74,7 +74,7 @@ public class PantsServer {
                     //List the currently connected clients
                     System.out.println("Clients currently connected: ");
                     System.out.print("    ");
-                    for (String name : cck) {
+                    for (String name : connectedClients.keySet()) {
                         System.out.print(name + " ");
                     }
                     System.out.println();
@@ -90,32 +90,61 @@ public class PantsServer {
             }
         }).start();
     }
-    
-    private static void selectOtherClient() {
-        if (!connectedClients.isEmpty()) {
-            for (String name : connectedClients.keySet()) {
-                Socket sock = connectedClients.get(name);
-                boolean sentData = false;
+
+    private static void pingClients(boolean tryToSelectOther) {
+        //This variable name seems a bit too long
+        boolean triedToSelectOtherClientFromStart = tryToSelectOther;
+        
+        for (String name : connectedClients.keySet()) {
+            Socket sock = connectedClients.get(name);
+            if(sock == null) {
+                connectedClients.remove(name);
+                continue;
+            }
+            
+            boolean connected = ping(sock);
+            if (!connected) {
                 try {
-                    sock.sendUrgentData(0);
-                    sentData = true;
-                } catch (IOException e) {}
-                
-                if (sock.isClosed() || !sentData) {
-                    connectedClients.remove(name);
-                    System.out.println(name + " disconnected!");
-                    continue;
+                    sock.close();
+                } catch (IOException e) {
+                    //Ignore any kind of exception thrown here
                 }
-                
+                connectedClients.remove(name);
+                System.out.println(name + " disconnected!");
+                if (sock == selectedClient) {
+                    selectedClient = null;
+                    tryToSelectOther = true;
+                }
+            } else if (tryToSelectOther) {
                 selectedClient = sock;
+                tryToSelectOther = false;
             }
         }
-    }
 
+        if (tryToSelectOther && !triedToSelectOtherClientFromStart)
+            pingClients(tryToSelectOther);
+    }
+    
+    private static boolean ping(Socket sock) {
+        boolean sentData = false;
+        
+        try {
+            /* Send an 'urgent byte' to the client. If not arrived,
+             * throws an exception and sentData will not be set,
+             * if arrived, sentData will be set, 
+             * and it will be silently discarded by the client
+             */
+            sock.sendUrgentData(0);
+            sentData = true;
+        } catch (IOException e) {}
+        
+        //If we cannot send commands to the client, it's now useless.
+        return sentData && !sock.isClosed() && !sock.isOutputShutdown();
+    }
+    
     public static void addClient(Socket client) {
         try {
             BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            // PrintStream toClient = new PrintStream(client.getOutputStream());
             String in = fromClient.readLine();
             
             // Use different names for multiple clients in clients (Ya 'now what i mean)
